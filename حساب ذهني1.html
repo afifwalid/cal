@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آلة حاسبة مع شات بوت</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+        .calculator, .chatbot {
+            margin: 20px auto;
+            max-width: 300px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button, textarea {
+            width: 90%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .result {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        #chatHistory {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>آلة حاسبة مع شات بوت</h1>
+
+    <!-- آلة حاسبة -->
+    <div class="calculator">
+        <h2>آلة حاسبة</h2>
+        <input type="number" id="num1" placeholder="أدخل الرقم الأول">
+        <input type="number" id="num2" placeholder="أدخل الرقم الثاني">
+        <button onclick="calculate('+')">جمع</button>
+        <button onclick="calculate('-')">طرح</button>
+        <button onclick="calculate('*')">ضرب</button>
+        <button onclick="calculate('/')">قسمة</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <!-- شات بوت -->
+    <div class="chatbot">
+        <h2>شات بوت</h2>
+        <textarea id="userInput" placeholder="اكتب سؤالك هنا..." rows="3"></textarea>
+        <button onclick="sendMessage()">إرسال</button>
+        <div id="chatHistory"></div>
+    </div>
+
+    <script>
+        // وظيفة الآلة الحاسبة
+        function calculate(operation) {
+            const num1 = parseFloat(document.getElementById('num1').value);
+            const num2 = parseFloat(document.getElementById('num2').value);
+            let result = '';
+
+            if (isNaN(num1) || isNaN(num2)) {
+                result = "يرجى إدخال أرقام صحيحة!";
+            } else {
+                switch (operation) {
+                    case '+': result = num1 + num2; break;
+                    case '-': result = num1 - num2; break;
+                    case '*': result = num1 * num2; break;
+                    case '/': 
+                        result = num2 !== 0 ? (num1 / num2) : "لا يمكن القسمة على صفر";
+                        break;
+                    default: result = "عملية غير معروفة";
+                }
+            }
+            document.getElementById('result').innerText = `النتيجة: ${result}`;
+        }
+
+        // وظيفة شات بوت
+        async function sendMessage() {
+            const userMessage = document.getElementById('userInput').value;
+            const chatHistory = document.getElementById('chatHistory');
+
+            // عرض الرسالة
+            chatHistory.innerHTML += `<p><strong>أنت:</strong> ${userMessage}</p>`;
+
+            // إعداد الطلب إلى API
+            const apiKey = "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"; // <-- ضع مفتاح API الخاص بك هنا
+            const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [{ role: "user", content: userMessage }]
+                })
+            });
+
+            // التعامل مع الرد
+            if (response.ok) {
+                const data = await response.json();
+                const botReply = data.choices[0].message.content;
+                chatHistory.innerHTML += `<p><strong>بوت:</strong> ${botReply}</p>`;
+            } else {
+                chatHistory.innerHTML += `<p><strong>بوت:</strong> حدث خطأ أثناء الاتصال بالخادم.</p>`;
+            }
+
+            // تنظيف الإدخال
+            document.getElementById('userInput').value = '';
+        }
+    </script>
+</body>
+</html>
